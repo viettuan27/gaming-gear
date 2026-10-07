@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import com.tuanviet.gaminggear.common.ApiResponse;
 import com.tuanviet.gaminggear.dto.response.ProductImageResponse;
 import com.tuanviet.gaminggear.service.ProductImageService;
+import com.tuanviet.gaminggear.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductImageController {
 
     private final ProductImageService productImageService;
+    private final RateLimitService rateLimitService;
 
     @Operation(summary = "Tải ảnh cho sản phẩm")
     @PostMapping(
@@ -31,12 +34,14 @@ public class ProductImageController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<ApiResponse<ProductImageResponse>> create(
+            HttpServletRequest httpServletRequest,
             @PathVariable Long productId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("sortOrder")
             @Min(value = 0, message = "Thứ tự ảnh không được âm")
             int sortOrder
     ) {
+        rateLimitService.checkUpload(httpServletRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success(
                         "Thêm ảnh sản phẩm thành công",
@@ -51,12 +56,16 @@ public class ProductImageController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<ApiResponse<ProductImageResponse>> update(
+            HttpServletRequest httpServletRequest,
             @PathVariable Long imageId,
             @RequestParam(value = "file", required = false) MultipartFile file,
             @RequestParam("sortOrder")
             @Min(value = 0, message = "Thứ tự ảnh không được âm")
             int sortOrder
     ) {
+        if (file != null) {
+            rateLimitService.checkUpload(httpServletRequest);
+        }
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "Cập nhật ảnh sản phẩm thành công",

@@ -8,6 +8,8 @@ import com.tuanviet.gaminggear.dto.request.RefreshTokenRequest;
 import com.tuanviet.gaminggear.dto.request.RegisterRequest;
 import com.tuanviet.gaminggear.dto.response.AuthResponse;
 import com.tuanviet.gaminggear.service.AuthService;
+import com.tuanviet.gaminggear.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,12 +29,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RateLimitService rateLimitService;
 
     @Operation(summary = "Đăng ký tài khoản khách hàng")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
+            HttpServletRequest httpServletRequest,
             @Valid @RequestBody RegisterRequest request
     ) {
+        rateLimitService.checkRegister(httpServletRequest, request.email());
         AuthResponse response = authService.register(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,8 +47,10 @@ public class AuthController {
     @Operation(summary = "Đăng nhập và nhận access token")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
+            HttpServletRequest httpServletRequest,
             @Valid @RequestBody LoginRequest request
     ) {
+        rateLimitService.checkLogin(httpServletRequest, request.email());
         AuthResponse response = authService.login(request);
 
         return ResponseEntity.ok(
@@ -54,8 +61,10 @@ public class AuthController {
     @Operation(summary = "Làm mới access token")
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            HttpServletRequest httpServletRequest,
             @Valid @RequestBody RefreshTokenRequest request
     ) {
+        rateLimitService.checkRefreshToken(httpServletRequest);
         AuthResponse response = authService.refreshToken(request);
 
         return ResponseEntity.ok(

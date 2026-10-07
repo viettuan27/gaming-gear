@@ -40,6 +40,24 @@ minio:
   public-url: ${MINIO_PUBLIC_URL}
   bucket: ${MINIO_BUCKET}
 
+security:
+  rate-limit:
+    login:
+      ip-limit: ${RATE_LIMIT_LOGIN_IP_LIMIT:20}
+      account-limit: ${RATE_LIMIT_LOGIN_ACCOUNT_LIMIT:8}
+      window: ${RATE_LIMIT_LOGIN_WINDOW:1m}
+    register:
+      ip-limit: ${RATE_LIMIT_REGISTER_IP_LIMIT:5}
+      account-limit: ${RATE_LIMIT_REGISTER_ACCOUNT_LIMIT:3}
+      window: ${RATE_LIMIT_REGISTER_WINDOW:1h}
+    refresh:
+      ip-limit: ${RATE_LIMIT_REFRESH_IP_LIMIT:30}
+      window: ${RATE_LIMIT_REFRESH_WINDOW:1m}
+    upload:
+      user-limit: ${RATE_LIMIT_UPLOAD_USER_LIMIT:30}
+      ip-limit: ${RATE_LIMIT_UPLOAD_IP_LIMIT:60}
+      window: ${RATE_LIMIT_UPLOAD_WINDOW:1m}
+
 logging:
   level:
     org.hibernate.SQL: debug

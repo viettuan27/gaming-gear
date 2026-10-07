@@ -9,6 +9,8 @@ import com.tuanviet.gaminggear.dto.response.ArticleSummaryResponse;
 import com.tuanviet.gaminggear.dto.response.PageResponse;
 import com.tuanviet.gaminggear.entity.cms.ContentStatus;
 import com.tuanviet.gaminggear.service.ArticleService;
+import com.tuanviet.gaminggear.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -30,13 +32,18 @@ import org.springframework.web.multipart.MultipartFile;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final RateLimitService rateLimitService;
 
     @Operation(summary = "Tạo bài viết mới")
     @PostMapping(value = "/api/v1/admin/cms/articles", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ArticleDetailResponse>> create(
+            HttpServletRequest httpServletRequest,
             @Valid @ModelAttribute ArticleRequest request,
             @RequestParam(value = "coverImage", required = false) MultipartFile coverImage
     ) {
+        if (coverImage != null) {
+            rateLimitService.checkUpload(httpServletRequest);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.success("Tạo bài viết thành công", articleService.create(request, coverImage)));
     }
@@ -44,10 +51,14 @@ public class ArticleController {
     @Operation(summary = "Cập nhật bài viết")
     @PutMapping(value = "/api/v1/admin/cms/articles/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ArticleDetailResponse>> update(
+            HttpServletRequest httpServletRequest,
             @PathVariable Long id,
             @Valid @ModelAttribute ArticleRequest request,
             @RequestParam(value = "coverImage", required = false) MultipartFile coverImage
     ) {
+        if (coverImage != null) {
+            rateLimitService.checkUpload(httpServletRequest);
+        }
         return ResponseEntity.ok(
                 ApiResponse.success("Cập nhật bài viết thành công", articleService.update(id, request, coverImage)));
     }

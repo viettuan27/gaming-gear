@@ -7,6 +7,8 @@ import com.tuanviet.gaminggear.dto.request.BannerRequest;
 import com.tuanviet.gaminggear.dto.response.BannerResponse;
 import com.tuanviet.gaminggear.entity.cms.BannerPosition;
 import com.tuanviet.gaminggear.service.BannerService;
+import com.tuanviet.gaminggear.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,13 +30,16 @@ import java.util.List;
 public class BannerController {
 
     private final BannerService bannerService;
+    private final RateLimitService rateLimitService;
 
     @Operation(summary = "Tạo banner mới")
     @PostMapping(value = "/api/v1/admin/cms/banners", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<BannerResponse>> create(
+            HttpServletRequest httpServletRequest,
             @Valid @ModelAttribute BannerRequest request,
             @RequestParam("file") MultipartFile file
     ) {
+        rateLimitService.checkUpload(httpServletRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Tạo banner thành công", bannerService.create(request, file)));
     }
@@ -42,10 +47,14 @@ public class BannerController {
     @Operation(summary = "Cập nhật banner")
     @PutMapping(value = "/api/v1/admin/cms/banners/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<BannerResponse>> update(
+            HttpServletRequest httpServletRequest,
             @PathVariable Long id,
             @Valid @ModelAttribute BannerRequest request,
             @RequestParam(value = "file", required = false) MultipartFile file
     ) {
+        if (file != null) {
+            rateLimitService.checkUpload(httpServletRequest);
+        }
         return ResponseEntity.ok(
                 ApiResponse.success("Cập nhật banner thành công", bannerService.update(id, request, file)));
     }
