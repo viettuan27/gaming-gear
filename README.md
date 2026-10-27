@@ -1,6 +1,6 @@
-# 🎮 Gaming Gear API
+# 🎮 Gaming Gear
 
-> A RESTful backend for a Gaming Gear e-commerce platform, built with Java 21 and Spring Boot 4.1. The project focuses on core backend functionalities, including authentication, product catalog management, shopping cart, order processing, concurrency handling, image storage, and CMS.
+> A full-stack e-commerce platform for gaming gear. The repository contains a Spring Boot API, a React storefront for customers, and a separate React admin portal for system administration.
 
 ## ✨ Features
 
@@ -11,6 +11,8 @@
 * **Redisson lock:** Protects inventory during checkout, order cancellation, and variant updates, reducing the risk of overselling and lost updates.
 * **MinIO:** Stores images for products, banners, and articles. The database stores only the corresponding `objectKey`.
 * **CMS:** Manage banners, static pages, and articles with the lifecycle states `DRAFT`, `PUBLISHED`, and `ARCHIVED`.
+* **Storefront & admin portal:** Separate React/Vite applications for customer shopping flows and admin catalog, order, and CMS management.
+* **Rate limiting:** Redis-backed fixed-window limits protect login, registration, refresh-token, and upload endpoints.
 * **API documentation:** Swagger UI provides API documentation and an interactive environment for testing endpoints directly.
 
 ## 🧰 Tech Stack
@@ -18,6 +20,7 @@
 | Category             | Technology                                        |
 | -------------------- | ------------------------------------------------- |
 | Backend              | Java 21, Spring Boot 4.1.0, Gradle                |
+| Frontend             | React 19, TypeScript, Vite, React Router, Axios   |
 | Database             | PostgreSQL 17, Spring Data JPA, Hibernate, Flyway |
 | Security             | Spring Security, JJWT, BCrypt                     |
 | Cache & concurrency  | Redis 7, Spring Cache, Redisson 4.7.0             |
@@ -30,7 +33,9 @@
 
 ```mermaid
 flowchart LR
-    C[Client / Swagger UI] --> A[Spring Boot API]
+    S[Storefront] --> A[Spring Boot API]
+    D[Admin Portal] --> A
+    C[Swagger UI] --> A
     A --> P[(PostgreSQL)]
     A --> R[(Redis)]
     A --> M[(MinIO)]
@@ -107,6 +112,8 @@ docker compose ps
 
 | Service          | Local Address                               |
 | ---------------- | ------------------------------------------- |
+| Storefront       | http://localhost:5173                       |
+| Admin Portal     | http://localhost:5174                       |
 | API / Swagger UI | http://localhost:8080/swagger-ui/index.html |
 | OpenAPI JSON     | http://localhost:8080/v3/api-docs           |
 | MinIO Console    | http://localhost:9001                       |
@@ -134,6 +141,24 @@ Verify the build:
 .\gradlew.bat build
 ```
 
+### Run the Frontend Locally
+
+Open a second terminal from the project root:
+
+```powershell
+Set-Location frontend
+npm ci
+npm run dev:storefront
+```
+
+Open Storefront at http://localhost:5173. To start the Admin Portal instead, run:
+
+```powershell
+npm run dev:admin
+```
+
+Open Admin Portal at http://localhost:5174. Both Vite applications proxy `/api` to the backend at `http://localhost:8080` during local development.
+
 ## 📚 Swagger and Authorization
 
 Swagger UI: http://localhost:8080/swagger-ui/index.html
@@ -147,6 +172,15 @@ Authentication flow in Swagger:
 All endpoints under `/api/v1/admin/**` require the `ADMIN` role.
 
 ## 🗂️ Source Structure
+
+```text
+frontend/
+├── apps/storefront/  # Storefront entrypoint
+├── apps/admin/       # Admin Portal entrypoint
+└── src/              # Shared API client, types, components, and pages
+```
+
+Backend source:
 
 ```text
 src/main/java/com/tuanviet/gaminggear

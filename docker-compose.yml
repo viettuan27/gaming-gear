@@ -95,6 +95,35 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  storefront_gaming:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        APP_TARGET: storefront
+        VITE_API_BASE_URL: /api/v1
+        VITE_STOREFRONT_URL: http://localhost:${STOREFRONT_HOST_PORT:-5173}
+    container_name: gaming_gear_storefront
+    ports:
+      - "${STOREFRONT_HOST_PORT:-5173}:80"
+    depends_on:
+      - api_gaming
+    restart: unless-stopped
+
+  admin_gaming:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        APP_TARGET: admin
+        VITE_API_BASE_URL: /api/v1
+        VITE_STOREFRONT_URL: http://localhost:${STOREFRONT_HOST_PORT:-5173}
+    container_name: gaming_gear_admin
+    ports:
+      - "${ADMIN_HOST_PORT:-5174}:80"
+    depends_on:
+      - api_gaming
+    restart: unless-stopped
 
 volumes:
   postgres_gaming:

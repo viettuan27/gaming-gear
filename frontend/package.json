@@ -1,0 +1,39 @@
+{
+  "name": "prj-gaming-gear-fe",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev:storefront",
+    "dev:storefront": "vite --config vite.storefront.config.ts",
+    "dev:admin": "vite --config vite.admin.config.ts",
+    "build": "npm run build:storefront && npm run build:admin",
+    "build:storefront": "tsc -b && vite build --config vite.storefront.config.ts",
+    "build:admin": "tsc -b && vite build --config vite.admin.config.ts",
+    "preview": "npm run preview:storefront",
+    "preview:storefront": "vite preview --config vite.storefront.config.ts",
+    "preview:admin": "vite preview --config vite.admin.config.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Gaming Gear e-commerce frontend built with React, TypeScript and Vite.",
+  "dependencies": {
+    "@tanstack/react-query": "^5.66.9",
+    "axios": "^1.20.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.18.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.4.1",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

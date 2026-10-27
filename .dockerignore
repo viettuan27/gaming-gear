@@ -3,6 +3,7 @@
 .gradle-user-home
 .idea
 build
+frontend/
 .env
 *.iml
 out
