@@ -28,6 +28,17 @@ export function formatNumber(value: number | null | undefined): string {
   return new Intl.NumberFormat('vi-VN').format(value ?? 0);
 }
 
+export function getDiscountPercentage(
+  originalPrice: number | null | undefined,
+  salePrice: number | null | undefined,
+): number | null {
+  if (originalPrice == null || salePrice == null || originalPrice <= salePrice) {
+    return null;
+  }
+
+  return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
+}
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) {
     return '—';

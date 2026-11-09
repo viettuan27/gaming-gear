@@ -7,15 +7,28 @@ import {
   ChevronRight,
   Edit3,
   FolderTree,
+  ImagePlus,
+  Layers3,
   LoaderCircle,
   PackagePlus,
   Plus,
   Search,
+  Settings2,
   Tag,
+  Trash2,
+  Upload,
   X,
 } from 'lucide-react';
-import { adminApi } from '../../api/services';
-import type { Brand, Category, PageResponse, Product } from '../../types/api';
+import { adminApi, catalogApi } from '../../api/services';
+import type {
+  Brand,
+  Category,
+  PageResponse,
+  Product,
+  ProductDetails,
+  ProductImagePayload,
+  ProductVariantPayload,
+} from '../../types/api';
 
 type CatalogTab = 'categories' | 'brands' | 'products';
 type ResponseEnvelope<T> = { data: T };
@@ -37,6 +50,8 @@ type ProductPayload = {
   description: string;
   active: boolean;
 };
+
+type ProductManagementTab = 'variants' | 'images';
 
 const inputClassName =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-50';
@@ -134,6 +149,7 @@ export function AdminCatalogPage() {
   const [brandEditingId, setBrandEditingId] = useState<number | null>(null);
   const [productForm, setProductForm] = useState<ProductPayload | null>(null);
   const [productEditingId, setProductEditingId] = useState<number | null>(null);
+  const [managedProductId, setManagedProductId] = useState<number | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: ['admin', 'categories'],
@@ -184,10 +200,12 @@ export function AdminCatalogPage() {
       if (id) return adminApi.updateProduct(id, payload);
       return adminApi.createProduct(payload);
     },
-    onSuccess: async () => {
+    onSuccess: async (savedProduct) => {
       await queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+      const shouldOpenManagement = productEditingId === null;
       setProductForm(null);
       setProductEditingId(null);
+      if (shouldOpenManagement) setManagedProductId(savedProduct.id);
     },
   });
 
@@ -339,6 +357,7 @@ export function AdminCatalogPage() {
                 active: product.active,
               });
             }}
+            onManage={(product) => setManagedProductId(product.id)}
           />
         )}
       </section>
@@ -457,7 +476,7 @@ export function AdminCatalogPage() {
       {productForm && (
         <AdminModal
           title={productEditingId ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm'}
-          description="Sau khi tạo sản phẩm, bạn có thể bổ sung biến thể, giá, tồn kho và ảnh ở API quản trị tương ứng."
+          description="Sau khi lưu, bạn có thể quản lý phiên bản, giá, tồn kho và ảnh ngay tại đây."
           onClose={() => setProductForm(null)}
         >
           <form
@@ -536,6 +555,13 @@ export function AdminCatalogPage() {
             />
           </form>
         </AdminModal>
+      )}
+
+      {managedProductId && (
+        <ProductManagerModal
+          productId={managedProductId}
+          onClose={() => setManagedProductId(null)}
+        />
       )}
     </section>
   );
@@ -654,6 +680,7 @@ function ProductTable({
   onPreviousPage,
   onNextPage,
   onEdit,
+  onManage,
 }: {
   products: Product[];
   isLoading: boolean;
@@ -664,6 +691,7 @@ function ProductTable({
   onPreviousPage: () => void;
   onNextPage: () => void;
   onEdit: (product: Product) => void;
+  onManage: (product: Product) => void;
 }) {
   if (isError) return <ErrorTable />;
   if (!isLoading && products.length === 0) return <EmptyTable message="Không tìm thấy sản phẩm nào" />;
@@ -696,6 +724,15 @@ function ProductTable({
                     <td className="px-5 py-4 text-slate-600">{product.brandName}</td>
                     <td className="px-5 py-4"><ActiveBadge active={product.active} /></td>
                     <td className="px-5 py-4 text-right sm:px-6">
+                      <button
+                        aria-label={`Quản lý ${product.name}`}
+                        className="inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                        type="button"
+                        onClick={() => onManage(product)}
+                      >
+                        <Settings2 className="h-4 w-4" />
+                        <span className="hidden lg:inline">Quản lý</span>
+                      </button>
                       <EditButton label={`Sửa ${product.name}`} onClick={() => onEdit(product)} />
                     </td>
                   </tr>
@@ -730,6 +767,188 @@ function ProductTable({
         </div>
       </div>
     </>
+  );
+}
+
+function ProductManagerModal({ productId, onClose }: { productId: number; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState<ProductManagementTab>('variants');
+  const [variantEditingId, setVariantEditingId] = useState<number | null>(null);
+  const [variantForm, setVariantForm] = useState<ProductVariantPayload | null>(null);
+  const [imageEditingId, setImageEditingId] = useState<number | null>(null);
+  const [imageForm, setImageForm] = useState<ProductImagePayload | null>(null);
+  const detailsQuery = useQuery({
+    queryKey: ['admin', 'product-details', productId],
+    queryFn: () => catalogApi.getProductDetails(productId),
+  });
+
+  const refreshDetails = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['admin', 'product-details', productId] });
+    await queryClient.invalidateQueries({ queryKey: ['product', productId] });
+  };
+
+  const saveVariantMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: number | null; payload: ProductVariantPayload }) => {
+      if (id) return adminApi.updateVariant(id, payload);
+      return adminApi.createVariant(productId, payload);
+    },
+    onSuccess: async () => {
+      await refreshDetails();
+      setVariantEditingId(null);
+      setVariantForm(null);
+    },
+  });
+
+  const saveImageMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: number | null; payload: ProductImagePayload }) => {
+      if (id) return adminApi.updateProductImage(id, payload);
+      return adminApi.uploadProductImage(productId, payload);
+    },
+    onSuccess: async () => {
+      await refreshDetails();
+      setImageEditingId(null);
+      setImageForm(null);
+    },
+  });
+
+  const deleteImageMutation = useMutation({
+    mutationFn: (imageId: number) => adminApi.deleteProductImage(imageId),
+    onSuccess: refreshDetails,
+  });
+
+  const details = detailsQuery.data as ProductDetails | undefined;
+
+  return (
+    <AdminModal
+      title={details ? `Quản lý: ${details.name}` : 'Quản lý sản phẩm'}
+      description="Cập nhật phiên bản, giá niêm yết, giá bán, tồn kho và hình ảnh hiển thị tại cửa hàng."
+      onClose={onClose}
+    >
+      {detailsQuery.isLoading && <div className="p-8 text-center text-sm font-medium text-slate-400">Đang tải thông tin sản phẩm...</div>}
+      {detailsQuery.isError && <div className="p-6"><MutationError error={detailsQuery.error} /></div>}
+      {details && (
+        <div>
+          <div className="flex gap-2 border-b border-slate-100 px-5 pt-4 sm:px-6">
+            <button
+              className={`inline-flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-bold transition ${tab === 'variants' ? 'border-[#0b5cff] text-[#0b5cff]' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+              type="button"
+              onClick={() => setTab('variants')}
+            >
+              <Layers3 className="h-4 w-4" /> Phiên bản ({details.variants.length})
+            </button>
+            <button
+              className={`inline-flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-bold transition ${tab === 'images' ? 'border-[#0b5cff] text-[#0b5cff]' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+              type="button"
+              onClick={() => setTab('images')}
+            >
+              <ImagePlus className="h-4 w-4" /> Hình ảnh ({details.images.length})
+            </button>
+          </div>
+
+          {tab === 'variants' && (
+            <div className="space-y-5 p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-bold text-slate-900">Phiên bản sản phẩm</h3>
+                  <p className="mt-1 text-sm text-slate-500">Mỗi phiên bản có SKU, giá niêm yết, giá bán và số lượng tồn kho riêng.</p>
+                </div>
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0b5cff] px-3.5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+                  type="button"
+                  onClick={() => {
+                    setVariantEditingId(null);
+                    setVariantForm({ name: '', sku: '', price: 0, originalPrice: null, stockQuantity: 0, active: true });
+                  }}
+                >
+                  <Plus className="h-4 w-4" /> Thêm phiên bản
+                </button>
+              </div>
+
+              {details.variants.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-500">Sản phẩm chưa có phiên bản. Hãy thêm ít nhất một phiên bản để khách hàng có thể đặt mua.</div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-slate-100">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400"><tr><th className="px-4 py-3">Phiên bản</th><th className="px-4 py-3">SKU</th><th className="px-4 py-3">Giá niêm yết</th><th className="px-4 py-3">Giá bán</th><th className="px-4 py-3">Tồn kho</th><th className="px-4 py-3 text-right">Thao tác</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {details.variants.map((variant) => (
+                        <tr key={variant.id}>
+                          <td className="px-4 py-3 font-semibold text-slate-800">{variant.name}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-slate-500">{variant.sku}</td>
+                          <td className="px-4 py-3 text-slate-500">{variant.originalPrice == null ? '—' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(variant.originalPrice)}</td>
+                          <td className="px-4 py-3 font-semibold text-slate-700">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(variant.price)}</td>
+                          <td className="px-4 py-3 text-slate-700">{variant.stockQuantity}</td>
+                          <td className="px-4 py-3 text-right"><EditButton label={`Sửa phiên bản ${variant.name}`} onClick={() => { setVariantEditingId(variant.id); setVariantForm({ name: variant.name, sku: variant.sku, price: variant.price, originalPrice: variant.originalPrice, stockQuantity: variant.stockQuantity, active: variant.active }); }} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {variantForm && (
+                <form
+                  className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/40 p-4"
+                  onSubmit={(event) => { event.preventDefault(); saveVariantMutation.mutate({ id: variantEditingId, payload: variantForm }); }}
+                >
+                  <p className="font-bold text-slate-800">{variantEditingId ? 'Cập nhật phiên bản' : 'Thêm phiên bản mới'}</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label><span className="mb-1.5 block text-sm font-semibold text-slate-700">Tên phiên bản</span><input required maxLength={150} className={inputClassName} placeholder="Ví dụ: Black & Gold" value={variantForm.name} onChange={(event) => setVariantForm({ ...variantForm, name: event.target.value })} /></label>
+                    <label><span className="mb-1.5 block text-sm font-semibold text-slate-700">SKU</span><input required maxLength={100} className={inputClassName} placeholder="MOUSE-LOG-01-BLK" value={variantForm.sku} onChange={(event) => setVariantForm({ ...variantForm, sku: event.target.value })} /></label>
+                    <label><span className="mb-1.5 block text-sm font-semibold text-slate-700">Giá niêm yết (VNĐ)</span><input min="0" type="number" className={inputClassName} placeholder="Để trống nếu không giảm giá" value={variantForm.originalPrice ?? ''} onChange={(event) => setVariantForm({ ...variantForm, originalPrice: event.target.value === '' ? null : Number(event.target.value) })} /></label>
+                    <label><span className="mb-1.5 block text-sm font-semibold text-slate-700">Giá bán (VNĐ)</span><input required min="0" type="number" className={inputClassName} value={variantForm.price} onChange={(event) => setVariantForm({ ...variantForm, price: Number(event.target.value) })} /></label>
+                    <label><span className="mb-1.5 block text-sm font-semibold text-slate-700">Số lượng tồn kho</span><input required min="0" type="number" className={inputClassName} value={variantForm.stockQuantity} onChange={(event) => setVariantForm({ ...variantForm, stockQuantity: Number(event.target.value) })} /></label>
+                  </div>
+                  <Toggle checked={variantForm.active} label="Cho phép khách hàng chọn phiên bản này" onChange={(active) => setVariantForm({ ...variantForm, active })} />
+                  <MutationError error={saveVariantMutation.error} />
+                  <FormActions isPending={saveVariantMutation.isPending} label={variantEditingId ? 'Lưu phiên bản' : 'Thêm phiên bản'} onCancel={() => { setVariantEditingId(null); setVariantForm(null); }} />
+                </form>
+              )}
+            </div>
+          )}
+
+          {tab === 'images' && (
+            <div className="space-y-5 p-5 sm:p-6">
+              <div>
+                <h3 className="font-bold text-slate-900">Hình ảnh sản phẩm</h3>
+                <p className="mt-1 text-sm text-slate-500">Chọn file JPEG, PNG hoặc WebP. Ảnh sẽ được lưu an toàn cùng dữ liệu cửa hàng.</p>
+              </div>
+              {details.images.length === 0 ? (
+                <div className="rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-500">Sản phẩm chưa có ảnh. Hãy upload ảnh đầu tiên để hiển thị tại cửa hàng.</div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {details.images.map((image) => (
+                    <article key={image.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white">
+                      <img className="h-36 w-full bg-slate-50 object-contain" src={image.imageUrl} alt={`${details.name} ${image.sortOrder + 1}`} />
+                      <div className="flex items-center justify-between gap-3 p-3"><span className="text-xs font-semibold text-slate-500">Thứ tự {image.sortOrder}</span><div className="flex gap-1"><button className="grid h-8 w-8 place-items-center rounded-lg text-[#0b5cff] hover:bg-blue-50" type="button" aria-label="Sửa ảnh" onClick={() => { setImageEditingId(image.id); setImageForm({ sortOrder: image.sortOrder, file: null }); }}><Edit3 className="h-4 w-4" /></button><button className="grid h-8 w-8 place-items-center rounded-lg text-rose-600 hover:bg-rose-50" type="button" aria-label="Xóa ảnh" disabled={deleteImageMutation.isPending} onClick={() => deleteImageMutation.mutate(image.id)}><Trash2 className="h-4 w-4" /></button></div></div>
+                    </article>
+                  ))}
+                </div>
+              )}
+              <button
+                className="inline-flex items-center gap-2 rounded-xl border border-dashed border-blue-300 bg-blue-50/50 px-4 py-3 text-sm font-bold text-[#0b5cff] transition hover:bg-blue-50"
+                type="button"
+                onClick={() => { setImageEditingId(null); setImageForm({ sortOrder: details.images.length, file: null }); }}
+              >
+                <Upload className="h-4 w-4" /> Thêm ảnh
+              </button>
+              {imageForm && (
+                <form
+                  className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/40 p-4"
+                  onSubmit={(event) => { event.preventDefault(); saveImageMutation.mutate({ id: imageEditingId, payload: imageForm }); }}
+                >
+                  <p className="font-bold text-slate-800">{imageEditingId ? 'Cập nhật ảnh' : 'Upload ảnh sản phẩm'}</p>
+                  <label className="block"><span className="mb-1.5 block text-sm font-semibold text-slate-700">Chọn ảnh {imageEditingId ? '(không bắt buộc nếu chỉ đổi thứ tự)' : ''}</span><input required={!imageEditingId} accept="image/jpeg,image/png,image/webp" type="file" className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-bold file:text-[#0b5cff]" onChange={(event) => setImageForm({ ...imageForm, file: event.target.files?.[0] ?? null })} /><p className="mt-2 text-xs text-slate-400">Hỗ trợ JPEG, PNG hoặc WebP; dung lượng tối đa 5 MB.</p></label>
+                  <label className="block"><span className="mb-1.5 block text-sm font-semibold text-slate-700">Thứ tự hiển thị</span><input required min="0" type="number" className={inputClassName} value={imageForm.sortOrder} onChange={(event) => setImageForm({ ...imageForm, sortOrder: Number(event.target.value) })} /></label>
+                  <MutationError error={saveImageMutation.error || deleteImageMutation.error} />
+                  <FormActions isPending={saveImageMutation.isPending} label={imageEditingId ? 'Lưu ảnh' : 'Upload ảnh'} onCancel={() => { setImageEditingId(null); setImageForm(null); }} />
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </AdminModal>
   );
 }
 

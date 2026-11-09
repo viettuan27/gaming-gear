@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { Product } from '../../types/api';
 import { cartApi, catalogApi } from '../../api/services';
 import { useAuth } from '../../auth/AuthContext';
-import { formatCurrency } from '../../lib/format';
+import { formatCurrency, getDiscountPercentage } from '../../lib/format';
 import { ProductVisual } from './ProductVisual';
 
 export function ProductCard({ product }: { product: Product }) {
@@ -22,6 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
   const firstVariant = detail?.variants?.find((variant) => variant.active && variant.stockQuantity > 0)
     ?? detail?.variants?.find((variant) => variant.active);
   const productIsAvailable = Boolean(firstVariant && firstVariant.stockQuantity > 0);
+  const discountPercentage = getDiscountPercentage(firstVariant?.originalPrice, firstVariant?.price);
 
   const addToCart = useMutation({
     mutationFn: (variantId: number) => cartApi.addItem({ variantId, quantity: 1 }),
@@ -59,7 +60,14 @@ export function ProductCard({ product }: { product: Product }) {
           {detailQuery.isLoading ? (
             <span className="price-placeholder">Đang cập nhật giá...</span>
           ) : firstVariant ? (
-            <><span className="price-label">Từ</span> {formatCurrency(firstVariant.price)}</>
+            <>
+              <span className="price-label">Từ</span>
+              {firstVariant.originalPrice != null && (
+                <span className="product-card-original-price">{formatCurrency(firstVariant.originalPrice)}</span>
+              )}
+              <span className="product-card-sale-price">{formatCurrency(firstVariant.price)}</span>
+              {discountPercentage != null && <span className="price-discount-badge">-{discountPercentage}%</span>}
+            </>
           ) : (
             <span className="price-placeholder">Xem chi tiết</span>
           )}

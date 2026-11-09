@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByUserId(Long userId, Pageable pageable);
 
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+
+    long countByStatus(OrderStatus status);
+
+    @Query("""
+            select coalesce(sum(o.totalAmount), 0)
+            from Order o
+            where o.status = :status
+            """)
+    BigDecimal sumTotalAmountByStatus(@Param("status") OrderStatus status);
 
     @Query("""
             select orderItem.variant.id

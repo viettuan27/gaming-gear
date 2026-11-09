@@ -5,10 +5,10 @@
 -- Xóa dữ liệu nghiệp vụ/test, GIỮ LẠI roles và flyway_schema_history.
 -- Không xóa object cũ trong MinIO và không thêm product_images, vì object_key
 -- chỉ nên trỏ tới ảnh do dự án sở hữu hoặc tự upload.
--- Chạy trong PowerShell, tại thư mục gốc dự án:
--- [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
--- Get-Content -Raw scripts/seed_demo_catalog.sql |
---   docker compose exec -T postgres_gaming sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+-- Chạy tại thư mục gốc dự án. Sao chép file UTF-8 trực tiếp vào container
+-- để giữ nguyên ký tự tiếng Việt:
+-- docker cp scripts/seed_demo_catalog.sql postgres_gaming:/tmp/seed_demo_catalog.sql
+-- docker compose exec -T postgres_gaming sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tmp/seed_demo_catalog.sql'
 
 BEGIN;
 

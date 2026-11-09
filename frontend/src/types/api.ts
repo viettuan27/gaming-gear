@@ -101,6 +101,7 @@ export interface ProductVariant {
   name: string;
   sku: string;
   price: number;
+  originalPrice: number | null;
   stockQuantity: number;
   active: boolean;
 }
@@ -109,6 +110,7 @@ export interface ProductVariantPayload {
   name: string;
   sku: string;
   price: number;
+  originalPrice: number | null;
   stockQuantity: number;
   active: boolean;
 }
@@ -218,6 +220,11 @@ export interface OrderListParams {
 
 export interface AdminOrderListParams extends OrderListParams {
   status?: OrderStatus;
+}
+
+export interface AdminOrderStatistics {
+  deliveredRevenue: number;
+  deliveredOrderCount: number;
 }
 
 export interface Banner {

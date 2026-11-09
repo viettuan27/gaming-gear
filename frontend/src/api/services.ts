@@ -1,6 +1,7 @@
 import { apiClient, unwrapResponse } from './client';
 import type {
   AddCartItemPayload,
+  AdminOrderStatistics,
   AdminOrderListParams,
   ArticleDetail,
   ArticleListParams,
@@ -230,6 +231,9 @@ export const adminApi = {
         params,
       }),
     ),
+
+  getOrderStatistics: () =>
+    unwrapResponse<AdminOrderStatistics>(apiClient.get('/admin/orders/statistics')),
 
   updateOrderStatus: (orderId: number, status: OrderStatus) =>
     unwrapResponse<Order>(

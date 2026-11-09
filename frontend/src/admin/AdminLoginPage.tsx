@@ -39,7 +39,7 @@ export function AdminLoginPage() {
           </span>
           <h1 className="mt-6 text-5xl font-black leading-tight">Vận hành cửa hàng, an toàn và tập trung.</h1>
           <p className="mt-5 max-w-md text-base leading-7 text-blue-100">
-            Quản lý catalog, đơn hàng và nội dung CMS từ một khu vực chỉ dành cho quản trị viên.
+            Quản lý sản phẩm, đơn hàng và nội dung cửa hàng từ một khu vực chỉ dành cho quản trị viên.
           </p>
         </div>
         <p className="text-sm text-blue-100">Không sử dụng URL hay redirect để truyền token giữa hai ứng dụng.</p>

@@ -23,7 +23,17 @@ const quickLinks = [
   { label: 'Hỗ trợ', to: '/pages' },
 ];
 
-export function StoreHeader() {
+interface StoreHeaderProps {
+  categoryMenuOpen: boolean;
+  onToggleCategoryMenu: () => void;
+  onCloseCategoryMenu: () => void;
+}
+
+export function StoreHeader({
+  categoryMenuOpen,
+  onToggleCategoryMenu,
+  onCloseCategoryMenu,
+}: StoreHeaderProps) {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const [query, setQuery] = useState('');
@@ -39,6 +49,11 @@ export function StoreHeader() {
     const keyword = query.trim();
     navigate(keyword ? `/products?keyword=${encodeURIComponent(keyword)}` : '/products');
     setMenuOpen(false);
+    onCloseCategoryMenu();
+  }
+
+  function toggleDesktopCategoryMenu() {
+    onToggleCategoryMenu();
   }
 
   async function handleLogout() {
@@ -59,15 +74,15 @@ export function StoreHeader() {
             <Menu size={22} />
           </button>
 
-          <Link className="brand-mark" to="/" aria-label="Nova Gear - Trang chủ">
+          <Link className="brand-mark" to="/" aria-label="Nova Gear - Trang chủ" onClick={onCloseCategoryMenu}>
             <span className="brand-symbol"><Zap size={20} fill="currentColor" /></span>
             <span>NOVA<span>GEAR</span></span>
           </Link>
 
-          <button className="category-trigger" onClick={() => setMenuOpen(true)}>
-            <Menu size={18} />
+          <button className={`category-trigger ${categoryMenuOpen ? 'is-active' : ''}`} onClick={toggleDesktopCategoryMenu} aria-expanded={categoryMenuOpen}>
+            {categoryMenuOpen ? <X size={18} /> : <Menu size={18} />}
             <span>Danh mục</span>
-            <ChevronDown size={15} />
+            {!categoryMenuOpen && <ChevronDown size={15} />}
           </button>
 
           <form className="header-search" onSubmit={submitSearch}>
@@ -119,7 +134,7 @@ export function StoreHeader() {
       <div className="header-secondary">
         <div className="container header-secondary-inner">
           <nav className="quick-links" aria-label="Điều hướng chính">
-            {quickLinks.map((link) => <NavLink key={link.label} to={link.to}>{link.label}</NavLink>)}
+            {quickLinks.map((link) => <NavLink key={link.label} to={link.to} onClick={onCloseCategoryMenu}>{link.label}</NavLink>)}
           </nav>
           <p className="header-assurance"><ShieldCheck size={16} /> Sản phẩm chính hãng · Hỗ trợ tận tâm</p>
         </div>

@@ -279,8 +279,8 @@ export function AdminCmsPage() {
     <section className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#0b5cff]">Content Management</p>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Nội dung CMS</h1>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#0b5cff]">Nội dung cửa hàng</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Quản lý nội dung</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             Soạn nội dung ở trạng thái bản nháp, sau đó xuất bản khi đã sẵn sàng hiển thị ra cửa hàng.
           </p>
@@ -986,7 +986,7 @@ function LoadingRows({ columns }: { columns: number }) {
 function ContentError() {
   return (
     <div className="p-10 text-center">
-      <p className="text-sm font-semibold text-rose-600">Không thể tải nội dung CMS.</p>
+      <p className="text-sm font-semibold text-rose-600">Không thể tải nội dung.</p>
       <p className="mt-1 text-sm text-slate-400">Hãy kiểm tra quyền quản trị hoặc thử tải lại trang.</p>
     </div>
   );

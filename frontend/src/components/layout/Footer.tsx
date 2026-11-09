@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Headphones, Mail, MapPin, Phone, ShieldCheck, Truck } from 'lucide-react';
+import { Headphones, Mail, MapPin, ShieldCheck, Truck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { cmsApi } from '../../api/services';
 
@@ -36,13 +36,13 @@ export function Footer() {
           </div>
           <div>
             <h3>Liên hệ</h3>
-            <p><Phone size={15} /> 1900 0000</p>
-            <p><Mail size={15} /> hello@novagear.local</p>
-            <p><MapPin size={15} /> Hồ Chí Minh, Việt Nam</p>
+            <p><Headphones size={15} /> Hỗ trợ trước và sau mua</p>
+            <p><Mail size={15} /> Thông tin liên hệ đang cập nhật</p>
+            <p><MapPin size={15} /> Phục vụ khách hàng tại Việt Nam</p>
           </div>
         </div>
       </div>
-      <div className="footer-bottom"><div className="container">© 2026 Nova Gear. Demo frontend kết nối Gaming Gear API.</div></div>
+      <div className="footer-bottom"><div className="container">© 2026 Nova Gear. Thiết bị gaming cho góc máy của bạn.</div></div>
     </footer>
   );
 }

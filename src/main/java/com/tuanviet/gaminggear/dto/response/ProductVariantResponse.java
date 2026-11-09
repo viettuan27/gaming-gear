@@ -8,6 +8,7 @@ public record ProductVariantResponse(
         String name,
         String sku,
         BigDecimal price,
+        BigDecimal originalPrice,
         int stockQuantity,
         boolean active
 ) {

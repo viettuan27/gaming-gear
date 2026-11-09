@@ -2,16 +2,16 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowUpRight,
+  Banknote,
   Boxes,
   FileText,
-  Image,
   Package,
   ShoppingBag,
   Tags,
 } from 'lucide-react';
-import { adminApi, cmsApi } from '../../api/services';
+import { adminApi } from '../../api/services';
 import type {
-  Banner,
+  AdminOrderStatistics,
   Brand,
   Category,
   OrderSummary,
@@ -81,15 +81,16 @@ export function AdminDashboardPage() {
         await adminApi.getOrders({ page: 0, size: 5 }),
       ),
   });
-  const bannersQuery = useQuery({
-    queryKey: ['admin', 'cms', 'banners'],
-    queryFn: async () => unwrapResponse<Banner[]>(await cmsApi.getBanners()),
+  const orderStatisticsQuery = useQuery({
+    queryKey: ['admin', 'orders', 'statistics'],
+    queryFn: async () =>
+      unwrapResponse<AdminOrderStatistics>(await adminApi.getOrderStatistics()),
   });
 
   const orderPage = ordersQuery.data;
   const recentOrders = orderPage?.content ?? [];
   const isLoading =
-    categoriesQuery.isLoading || brandsQuery.isLoading || ordersQuery.isLoading || bannersQuery.isLoading;
+    categoriesQuery.isLoading || brandsQuery.isLoading || ordersQuery.isLoading || orderStatisticsQuery.isLoading;
 
   const statistics = [
     {
@@ -114,11 +115,11 @@ export function AdminDashboardPage() {
       to: '/orders',
     },
     {
-      label: 'Banner CMS',
-      value: bannersQuery.data?.length ?? 0,
-      icon: Image,
+      label: 'Doanh thu đã ghi nhận',
+      value: formatCurrency(orderStatisticsQuery.data?.deliveredRevenue),
+      icon: Banknote,
       iconClass: 'bg-emerald-50 text-emerald-600',
-      to: '/cms',
+      to: '/orders',
     },
   ];
 
@@ -129,7 +130,7 @@ export function AdminDashboardPage() {
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#0b5cff]">Nova Gear Admin Portal</p>
           <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Tổng quan cửa hàng</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Theo dõi nhanh catalog, nội dung và các đơn hàng mới nhất.
+            Theo dõi nhanh sản phẩm, nội dung và các đơn hàng mới nhất.
           </p>
         </div>
         <Link
@@ -249,7 +250,7 @@ export function AdminDashboardPage() {
               { label: 'Tạo danh mục hoặc thương hiệu', to: '/catalog' },
               { label: 'Cập nhật sản phẩm', to: '/catalog' },
               { label: 'Xử lý đơn hàng mới', to: '/orders' },
-              { label: 'Soạn banner hoặc bài viết', to: '/cms' },
+              { label: 'Soạn banner, trang thông tin hoặc bài viết', to: '/cms' },
             ].map((item) => (
               <Link
                 key={item.label}

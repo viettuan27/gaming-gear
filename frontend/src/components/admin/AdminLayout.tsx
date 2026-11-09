@@ -41,7 +41,7 @@ const navigationItems: NavigationItem[] = [
     description: 'Xử lý trạng thái đơn hàng',
   },
   {
-    label: 'Nội dung CMS',
+    label: 'Quản lý nội dung',
     to: '/cms',
     icon: PanelsTopLeft,
     description: 'Banner, trang và bài viết',

@@ -22,7 +22,7 @@ export function StaticPagesPage() {
     <section className="container section-space static-page-directory">
       <span className="eyebrow dark">NOVA GEAR SUPPORT</span>
       <h1>Thông tin & chính sách</h1>
-      <p>Những nội dung được quản trị viên xuất bản cho khách hàng.</p>
+      <p>Thông tin cần thiết giúp bạn mua sắm và sử dụng sản phẩm an tâm hơn.</p>
 
       {pages.length === 0 ? (
         <EmptyState title="Chưa có trang nội dung" description="Các chính sách và hướng dẫn sẽ sớm được cập nhật tại đây." />

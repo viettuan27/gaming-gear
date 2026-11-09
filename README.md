@@ -205,9 +205,9 @@ The `scripts/seed_demo_catalog.sql` script generates demo data including 5 categ
 After the Docker containers have started, run the following command from the project root:
 
 ```powershell
-[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-Get-Content -Raw scripts/seed_demo_catalog.sql |
-  docker compose exec -T postgres_gaming sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+# Copy the UTF-8 SQL file directly into the container. This preserves Vietnamese characters.
+docker cp scripts/seed_demo_catalog.sql postgres_gaming:/tmp/seed_demo_catalog.sql
+docker compose exec -T postgres_gaming sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /tmp/seed_demo_catalog.sql'
 ```
 
 Product model names are based on publicly available catalogs from GEARVN. Prices, inventory quantities, and descriptions are demo data.

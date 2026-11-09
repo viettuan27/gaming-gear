@@ -30,6 +30,7 @@ public class ProductVariantTransactionService {
         productVariant.setName(request.name().trim());
         productVariant.setSku(sku);
         productVariant.setPrice(request.price());
+        productVariant.setOriginalPrice(request.originalPrice());
         productVariant.setStockQuantity(request.stockQuantity());
         productVariant.setActive(request.active());
 

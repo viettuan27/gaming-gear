@@ -6,7 +6,7 @@ import { cartApi, catalogApi } from '../api/services';
 import { useAuth } from '../auth/AuthContext';
 import { ProductVisual } from '../components/catalog/ProductVisual';
 import { InlineError, PageLoader } from '../components/common/States';
-import { formatCurrency } from '../lib/format';
+import { formatCurrency, getDiscountPercentage } from '../lib/format';
 
 export function ProductDetailPage() {
   const { productId } = useParams();
@@ -29,6 +29,7 @@ export function ProductDetailPage() {
   const selectedVariant = useMemo(() => product?.variants.find((variant) => variant.id === selectedVariantId), [product?.variants, selectedVariantId]);
   const selectedImage = product?.images[selectedImageIndex]?.imageUrl;
   const maxQuantity = Math.max(selectedVariant?.stockQuantity ?? 1, 1);
+  const discountPercentage = getDiscountPercentage(selectedVariant?.originalPrice, selectedVariant?.price);
   const addToCart = useMutation({
     mutationFn: () => cartApi.addItem({ variantId: selectedVariantId!, quantity }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
@@ -58,15 +59,27 @@ export function ProductDetailPage() {
           <p className="product-brand-line">{product.brandName}</p>
           <h1>{product.name}</h1>
           <div className="product-meta-line"><span>Danh mục: <Link to={`/products?categoryId=${product.categoryId}`}>{product.categoryName}</Link></span><span className={selectedVariant?.stockQuantity ? 'in-stock' : 'out-stock'}>{selectedVariant?.stockQuantity ? <><Check size={16} /> Còn hàng</> : 'Tạm hết hàng'}</span></div>
-          <div className="detail-price">{selectedVariant ? formatCurrency(selectedVariant.price) : 'Liên hệ'}</div>
-          <p className="detail-description">{product.description || 'Thông tin mô tả cho sản phẩm sẽ được cập nhật bởi đội ngũ quản trị.'}</p>
+          <div className="detail-price">
+            {selectedVariant ? (
+              <>
+                {selectedVariant.originalPrice != null && (
+                  <span className="detail-original-price">{formatCurrency(selectedVariant.originalPrice)}</span>
+                )}
+                <span className="detail-sale-price">{formatCurrency(selectedVariant.price)}</span>
+                {discountPercentage != null && <span className="detail-discount-badge">Giảm {discountPercentage}%</span>}
+              </>
+            ) : (
+              'Liên hệ'
+            )}
+          </div>
+          <p className="detail-description">{product.description || 'Thông tin chi tiết về sản phẩm sẽ sớm được cập nhật.'}</p>
           <div className="variant-selector"><span>Phiên bản</span><div>{product.variants.filter((variant) => variant.active).map((variant) => <button key={variant.id} className={selectedVariantId === variant.id ? 'active' : ''} onClick={() => { setSelectedVariantId(variant.id); setQuantity(1); }}>{variant.name || variant.sku}</button>)}</div></div>
           {selectedVariant && <p className="sku-note">SKU: {selectedVariant.sku} · {selectedVariant.stockQuantity > 0 ? `Còn ${selectedVariant.stockQuantity} sản phẩm` : 'Sản phẩm đang hết hàng'}</p>}
           <div className="buy-row">
             <div className="quantity-stepper"><button onClick={() => setQuantity((current) => Math.max(current - 1, 1))} aria-label="Giảm số lượng"><Minus size={17} /></button><span>{quantity}</span><button onClick={() => setQuantity((current) => Math.min(current + 1, maxQuantity))} disabled={!selectedVariant?.stockQuantity} aria-label="Tăng số lượng"><Plus size={17} /></button></div>
             <button className="button button-dark add-cart-detail" onClick={addProductToCart} disabled={!selectedVariant || selectedVariant.stockQuantity <= 0 || addToCart.isPending}><ShoppingCart size={19} />{addToCart.isPending ? 'Đang thêm vào giỏ' : 'Thêm vào giỏ'}</button>
           </div>
-          <div className="product-assurances"><span><Truck size={19} /> Giao hàng theo chính sách cửa hàng</span><span><ShieldCheck size={19} /> Đặt hàng qua API bảo vệ tồn kho</span></div>
+          <div className="product-assurances"><span><Truck size={19} /> Giao hàng theo chính sách cửa hàng</span><span><ShieldCheck size={19} /> Đặt hàng an tâm, thông tin rõ ràng</span></div>
         </div>
       </section>
       <section className="container product-description-section"><h2>Thông tin sản phẩm</h2><p>{product.description || 'Chưa có mô tả chi tiết cho sản phẩm này.'}</p></section>

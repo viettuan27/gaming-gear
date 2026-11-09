@@ -6,6 +6,7 @@ import com.tuanviet.gaminggear.common.ApiResponse;
 import com.tuanviet.gaminggear.dto.request.CreateOrderRequest;
 import com.tuanviet.gaminggear.dto.request.UpdateOrderStatusRequest;
 import com.tuanviet.gaminggear.dto.response.OrderResponse;
+import com.tuanviet.gaminggear.dto.response.OrderStatisticsResponse;
 import com.tuanviet.gaminggear.dto.response.OrderSummaryResponse;
 import com.tuanviet.gaminggear.dto.response.PageResponse;
 import com.tuanviet.gaminggear.entity.order.OrderStatus;
@@ -115,6 +116,15 @@ public class OrderController {
                 ApiResponse.success(
                         "Lấy danh sách đơn hàng thành công",
                         orderService.getAllOrders(status, page, size, sortDirection)));
+    }
+
+    @Operation(summary = "Lấy thống kê doanh thu cho quản trị viên")
+    @GetMapping("/api/v1/admin/orders/statistics")
+    public ResponseEntity<ApiResponse<OrderStatisticsResponse>> getAdminOrderStatistics() {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Lấy thống kê đơn hàng thành công",
+                        orderService.getAdminOrderStatistics()));
     }
 
     @Operation(summary = "Cập nhật trạng thái đơn hàng")

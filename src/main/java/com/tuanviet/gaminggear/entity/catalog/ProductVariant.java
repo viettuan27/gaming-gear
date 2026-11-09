@@ -28,6 +28,9 @@ public class ProductVariant extends AuditableEntity {
     @Column(nullable = false,precision = 12,scale = 2)
     private BigDecimal price;
 
+    @Column(name = "original_price", precision = 12, scale = 2)
+    private BigDecimal originalPrice;
+
     @Column(name = "stock_quantity",nullable = false)
     private int stockQuantity = 0;
 

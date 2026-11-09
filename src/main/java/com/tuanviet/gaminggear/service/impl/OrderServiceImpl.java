@@ -3,6 +3,7 @@ package com.tuanviet.gaminggear.service.impl;
 import com.tuanviet.gaminggear.dto.request.CreateOrderRequest;
 import com.tuanviet.gaminggear.dto.request.UpdateOrderStatusRequest;
 import com.tuanviet.gaminggear.dto.response.OrderResponse;
+import com.tuanviet.gaminggear.dto.response.OrderStatisticsResponse;
 import com.tuanviet.gaminggear.dto.response.OrderSummaryResponse;
 import com.tuanviet.gaminggear.dto.response.PageResponse;
 import com.tuanviet.gaminggear.entity.cart.Cart;
@@ -108,6 +109,17 @@ public class OrderServiceImpl implements OrderService {
                 ? orderRepository.findAll(pageable)
                 : orderRepository.findByStatus(status,pageable);
         return toPageResponse(orderPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderStatisticsResponse getAdminOrderStatistics() {
+        OrderStatus completedStatus = OrderStatus.DELIVERED;
+
+        return new OrderStatisticsResponse(
+                orderRepository.sumTotalAmountByStatus(completedStatus),
+                orderRepository.countByStatus(completedStatus)
+        );
     }
 
     @Override
