@@ -58,6 +58,9 @@ public class ProductController {
             @RequestParam(required = false)
             Long brandId,
 
+            @RequestParam(defaultValue = "false")
+            boolean discounted,
+
             @RequestParam(required = false)
             String keyword,
             @RequestParam(defaultValue = "0")
@@ -81,6 +84,7 @@ public class ProductController {
                         productService.getAllProducts(
                                 categoryId,
                                 brandId,
+                                discounted,
                                 keyword,
                                 page,
                                 size,

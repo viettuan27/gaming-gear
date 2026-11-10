@@ -19,10 +19,14 @@ export function ProductCard({ product }: { product: Product }) {
   });
   const detail = detailQuery.data;
   const firstImage = detail?.images?.[0]?.imageUrl;
-  const firstVariant = detail?.variants?.find((variant) => variant.active && variant.stockQuantity > 0)
+  const discounted = new URLSearchParams(location.search).get('discounted') === 'true';
+  const saleVariants = detail?.variants?.filter((variant) => variant.active && variant.originalPrice != null && variant.originalPrice > variant.price);
+  const firstVariant = (discounted ? saleVariants?.find((variant) => variant.stockQuantity > 0) ?? saleVariants?.[0] : undefined)
+    ?? detail?.variants?.find((variant) => variant.active && variant.stockQuantity > 0)
     ?? detail?.variants?.find((variant) => variant.active);
   const productIsAvailable = Boolean(firstVariant && firstVariant.stockQuantity > 0);
   const discountPercentage = getDiscountPercentage(firstVariant?.originalPrice, firstVariant?.price);
+  const detailPath = `/products/${product.id}${discounted && firstVariant ? `?variantId=${firstVariant.id}` : ''}`;
 
   const addToCart = useMutation({
     mutationFn: (variantId: number) => cartApi.addItem({ variantId, quantity: 1 }),
@@ -48,13 +52,13 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="product-card">
-      <Link to={`/products/${product.id}`} className="product-card-media">
+      <Link to={detailPath} className="product-card-media">
         <ProductVisual name={product.name} imageUrl={firstImage} />
         {productIsAvailable && <span className="product-status-chip"><Check size={13} /> Sẵn sàng</span>}
       </Link>
       <div className="product-card-body">
         <p className="product-card-brand">{product.brandName}</p>
-        <Link to={`/products/${product.id}`} className="product-card-name">{product.name}</Link>
+        <Link to={detailPath} className="product-card-name">{product.name}</Link>
         <p className="product-card-description">{product.description || 'Thiết bị gaming chính hãng, phù hợp cho góc máy của bạn.'}</p>
         <div className="product-card-price">
           {detailQuery.isLoading ? (
@@ -73,7 +77,7 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
         <div className="product-card-actions">
-          <Link to={`/products/${product.id}`} className="card-detail-button"><Eye size={16} /> Chi tiết</Link>
+          <Link to={detailPath} className="card-detail-button"><Eye size={16} /> Chi tiết</Link>
           <button
             className="card-cart-button"
             onClick={handleAddToCart}

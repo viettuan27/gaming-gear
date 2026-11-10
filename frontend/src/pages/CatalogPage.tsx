@@ -24,6 +24,7 @@ export function CatalogPage() {
   const keyword = searchParams.get('keyword') ?? '';
   const categoryId = numberParam(searchParams.get('categoryId'));
   const brandId = numberParam(searchParams.get('brandId'));
+  const discounted = searchParams.get('discounted') === 'true';
   const currentPage = Math.max(Number(searchParams.get('page') ?? 0), 0);
   const sortBy = searchParams.get('sortBy') ?? 'name';
   const sortDirection: SortDirection = searchParams.get('sortDirection') === 'desc' ? 'desc' : 'asc';
@@ -34,11 +35,12 @@ export function CatalogPage() {
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: catalogApi.getCategories });
   const brandsQuery = useQuery({ queryKey: ['brands'], queryFn: catalogApi.getBrands });
   const productsQuery = useQuery({
-    queryKey: ['products', { keyword, categoryId, brandId, currentPage, sortBy, sortDirection }],
+    queryKey: ['products', { keyword, categoryId, brandId, discounted, currentPage, sortBy, sortDirection }],
     queryFn: () => catalogApi.getProducts({
       keyword: keyword || undefined,
       categoryId,
       brandId,
+      discounted: discounted || undefined,
       page: currentPage,
       size: 12,
       sortBy,
@@ -85,14 +87,14 @@ export function CatalogPage() {
 
   return (
     <div className="catalog-page">
-      <div className="container breadcrumb"><Link to="/">Trang chủ</Link><span>/</span><span>Sản phẩm</span></div>
+      <div className="container breadcrumb"><Link to="/">Trang chủ</Link><span>/</span><span>{discounted ? 'Sản phẩm giảm giá' : 'Sản phẩm'}</span></div>
       <section className="container catalog-title-row">
-        <div><span className="eyebrow dark">NOVA GEAR STORE</span><h1>Khám phá sản phẩm</h1><p>Chọn từ danh mục và thương hiệu đang có trong hệ thống.</p></div>
+        <div><span className="eyebrow dark">NOVA GEAR STORE</span><h1>{discounted ? 'Sản phẩm đang giảm giá' : 'Khám phá sản phẩm'}</h1><p>Chọn từ danh mục và thương hiệu đang có trong hệ thống.</p></div>
         <form className="catalog-search" onSubmit={submitKeyword}><Search size={18} /><input value={keywordDraft} onChange={(event) => setKeywordDraft(event.target.value)} placeholder="Tìm tên sản phẩm" /><button aria-label="Tìm kiếm"><Search size={18} /></button></form>
       </section>
       <div className="container catalog-layout">
         <aside className="filter-panel desktop-filter-panel">
-          <div className="filter-panel-head"><span><Filter size={18} /> Bộ lọc</span><button onClick={() => setSearchParams({})}><RotateCcw size={15} /> Đặt lại</button></div>
+          <div className="filter-panel-head"><span><Filter size={18} /> Bộ lọc</span><button onClick={() => setSearchParams(discounted ? { discounted: 'true' } : {})}><RotateCcw size={15} /> Đặt lại</button></div>
           {filterContent}
         </aside>
         <section className="catalog-results">

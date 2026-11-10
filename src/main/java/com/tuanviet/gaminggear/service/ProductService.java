@@ -16,6 +16,7 @@ public interface ProductService {
     PageResponse<ProductResponse> getAllProducts(
             Long categoryId,
             Long brandId,
+            boolean discounted,
             String keyword,
             int page,
             int size,

@@ -33,7 +33,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "product-detail", allEntries = true)
+    @CacheEvict(cacheNames = {"product-detail", "product-list"}, allEntries = true)
     public ProductVariantResponse create(Long productId, ProductVariantRequest request) {
         Product product = getProductById(productId);
         String sku = request.sku().trim().toUpperCase();
@@ -55,7 +55,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "product-detail", allEntries = true)
+    @CacheEvict(cacheNames = {"product-detail", "product-list"}, allEntries = true)
     public ProductVariantResponse update(Long variantId, ProductVariantRequest request) {
         RLock lock = redissonClient.getLock(getStockLockName(variantId));
 

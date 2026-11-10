@@ -104,10 +104,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "product-list")
+    @Cacheable(cacheNames = "product-list", condition = "!#discounted")
     public PageResponse<ProductResponse> getAllProducts(
             Long categoryId,
             Long brandId,
+            boolean discounted,
             String keyword,
             int page,
             int size,
@@ -127,6 +128,7 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> productPage = productRepository.searchPublicProducts(
                 categoryId,
                 brandId,
+                discounted,
                 normalizedKeyword,
                 pageable
         );

@@ -18,7 +18,7 @@ import { useAuth } from '../../auth/AuthContext';
 
 const quickLinks = [
   { label: 'Sản phẩm', to: '/products' },
-  { label: 'Khuyến mãi', to: '/products?sortBy=name&sortDirection=asc' },
+  { label: 'Khuyến mãi', to: '/promotions' },
   { label: 'Bài viết', to: '/articles' },
   { label: 'Hỗ trợ', to: '/pages' },
 ];

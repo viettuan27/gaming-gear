@@ -135,6 +135,7 @@ export interface ProductDetails {
 }
 
 export interface ProductFilters {
+  discounted?: boolean;
   categoryId?: number;
   brandId?: number;
   keyword?: string;

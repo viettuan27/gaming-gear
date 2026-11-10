@@ -12,6 +12,8 @@ import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleDetailPage } from './pages/ArticleDetailPage';
+import { PromotionsPage } from './pages/PromotionsPage';
+import { PromotionDetailPage } from './pages/PromotionDetailPage';
 import { StaticPageView } from './pages/StaticPageView';
 import { StaticPagesPage } from './pages/StaticPagesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -42,6 +44,8 @@ export function App() {
         <Route path="orders/:orderId" element={<RequireAuth><OrderDetailPage /></RequireAuth>} />
         <Route path="articles" element={<ArticlesPage />} />
         <Route path="articles/:slug" element={<ArticleDetailPage />} />
+        <Route path="promotions" element={<PromotionsPage />} />
+        <Route path="promotions/:slug" element={<PromotionDetailPage />} />
         <Route path="pages" element={<StaticPagesPage />} />
         <Route path="pages/:slug" element={<StaticPageView />} />
       </Route>

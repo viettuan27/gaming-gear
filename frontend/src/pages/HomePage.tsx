@@ -144,11 +144,11 @@ export function HomePage() {
         <section className="container promotion-section">
           <div className="section-heading promotion-heading">
             <div><span className="eyebrow dark">Ưu đãi tại Nova Gear</span><h2>Khuyến mãi đang diễn ra</h2></div>
-            <Link to="/products">Xem sản phẩm <ArrowRight size={17} /></Link>
+            <Link to="/products?discounted=true">Xem sản phẩm <ArrowRight size={17} /></Link>
           </div>
           <div className="promotion-grid">
             {promotionBannersQuery.data.map((banner) => (
-              <Link key={banner.id} to={banner.redirectUrl || '/products'} className="promotion-card">
+              <Link key={banner.id} to="/products?discounted=true" className="promotion-card">
                 <img src={banner.imageUrl} alt={banner.title} />
                 <div className="promotion-card-overlay" />
                 <div className="promotion-card-content">

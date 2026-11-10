@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { cmsApi } from '../../api/services';
+import { AdminPromotions } from './AdminPromotions';
 import type {
   ArticleDetail,
   ArticlePayload,
@@ -28,7 +29,7 @@ import type {
   StaticPagePayload,
 } from '../../types/api';
 
-type CmsTab = 'banners' | 'pages' | 'articles';
+type CmsTab = 'banners' | 'pages' | 'articles' | 'promotions';
 type ResponseEnvelope<T> = { data: T };
 type ContentResource = 'banner' | 'page' | 'article';
 type ContentAction = 'publish' | 'archive' | 'restore';
@@ -143,6 +144,7 @@ function EmptyContent({ label }: { label: string }) {
 export function AdminCmsPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<CmsTab>('banners');
+  const [promotionCreateRequested, setPromotionCreateRequested] = useState(false);
   const [articlePage, setArticlePage] = useState(0);
   const [bannerForm, setBannerForm] = useState<BannerPayload | null>(null);
   const [bannerEditingId, setBannerEditingId] = useState<number | null>(null);
@@ -223,6 +225,10 @@ export function AdminCmsPage() {
   const totalArticlePages = Math.max(articlesQuery.data?.totalPages ?? 1, 1);
 
   const openCreate = () => {
+    if (tab === 'promotions') {
+      setPromotionCreateRequested(true);
+      return;
+    }
     if (tab === 'banners') {
       setBannerEditingId(null);
       setBannerForm({ title: '', redirectUrl: '', position: 'HOME_HERO', sortOrder: 0, file: null });
@@ -273,6 +279,7 @@ export function AdminCmsPage() {
     { id: 'banners', label: 'Banner', icon: Megaphone },
     { id: 'pages', label: 'Trang tĩnh', icon: FileText },
     { id: 'articles', label: 'Bài viết', icon: ImagePlus },
+    { id: 'promotions', label: 'Khuyến mãi', icon: Megaphone },
   ];
 
   return (
@@ -291,7 +298,7 @@ export function AdminCmsPage() {
           onClick={openCreate}
         >
           <Plus className="h-4 w-4" />
-          {tab === 'banners' ? 'Thêm banner' : tab === 'pages' ? 'Thêm trang' : 'Thêm bài viết'}
+          {tab === 'banners' ? 'Thêm banner' : tab === 'pages' ? 'Thêm trang' : tab === 'promotions' ? 'Thêm bài khuyến mãi' : 'Thêm bài viết'}
         </button>
       </div>
 
@@ -325,6 +332,13 @@ export function AdminCmsPage() {
           </p>
         )}
 
+        {tab === 'promotions' && (
+          <AdminPromotions
+            ArticleTable={ArticleTable}
+            createRequested={promotionCreateRequested}
+            onCreateHandled={() => setPromotionCreateRequested(false)}
+          />
+        )}
         {tab === 'banners' && (
           <BannerTable
             banners={bannersQuery.data ?? []}
@@ -793,6 +807,8 @@ function ArticleTable({
   onPreviousPage,
   onNextPage,
   onAction,
+  contentLabel = 'bài viết',
+  columnLabel = 'Bài viết',
 }: {
   articles: ArticleSummary[];
   isLoading: boolean;
@@ -806,9 +822,11 @@ function ArticleTable({
   onPreviousPage: () => void;
   onNextPage: () => void;
   onAction: (id: number, action: ContentAction) => void;
+  contentLabel?: string;
+  columnLabel?: string;
 }) {
   if (isError) return <ContentError />;
-  if (!isLoading && articles.length === 0) return <EmptyContent label="bài viết nào" />;
+  if (!isLoading && articles.length === 0) return <EmptyContent label={`${contentLabel} nào`} />;
 
   return (
     <>
@@ -817,7 +835,7 @@ function ArticleTable({
           <thead className="bg-slate-50/70 text-xs uppercase tracking-wide text-slate-400">
             <tr>
               <th className="px-5 py-3.5 font-semibold sm:px-6">Ảnh bìa</th>
-              <th className="px-5 py-3.5 font-semibold">Bài viết</th>
+              <th className="px-5 py-3.5 font-semibold">{columnLabel}</th>
               <th className="px-5 py-3.5 font-semibold">Slug</th>
               <th className="px-5 py-3.5 font-semibold">Ngày đăng</th>
               <th className="px-5 py-3.5 font-semibold">Trạng thái</th>
@@ -855,7 +873,7 @@ function ArticleTable({
         </table>
       </div>
       <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p className="text-slate-400">Tổng cộng {totalArticles} bài viết</p>
+        <p className="text-slate-400">Tổng cộng {totalArticles} {contentLabel}</p>
         <div className="flex items-center gap-2">
           <button
             aria-label="Trang trước"

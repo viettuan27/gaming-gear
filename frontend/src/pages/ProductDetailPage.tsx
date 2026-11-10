@@ -22,9 +22,11 @@ export function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
+    const requestedVariantId = Number(new URLSearchParams(location.search).get('variantId'));
+    const requestedVariant = product?.variants.find((variant) => variant.active && variant.id === requestedVariantId);
     const firstAvailable = product?.variants.find((variant) => variant.active && variant.stockQuantity > 0) ?? product?.variants.find((variant) => variant.active);
-    setSelectedVariantId(firstAvailable?.id ?? null);
-  }, [product?.id]);
+    setSelectedVariantId(requestedVariant?.id ?? firstAvailable?.id ?? null);
+  }, [product, location.search]);
 
   const selectedVariant = useMemo(() => product?.variants.find((variant) => variant.id === selectedVariantId), [product?.variants, selectedVariantId]);
   const selectedImage = product?.images[selectedImageIndex]?.imageUrl;
